@@ -112,7 +112,7 @@ type Config struct {
 	Key               string
 	Application       string
 	Buffer            buffer.Config
-	MinimumLevel      uint
+	MinimumLevel      uint8
 	Timeout           time.Duration
 	DefaultProperties Entry
 	MessageEnvelop    string

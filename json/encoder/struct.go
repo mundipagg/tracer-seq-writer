@@ -34,6 +34,9 @@ func (changer *Struct) Encode(ptr unsafe.Pointer, stream *jsoniter.Stream) {
 }
 
 func (changer *Struct) writeField(structField reflect.StructField, value reflect.Value, stream *jsoniter.Stream) bool {
+	if !value.CanInterface() {
+		return false
+	}
 	tag := strings.TrimSpace(structField.Tag.Get("json"))
 	if len(tag) == 0 {
 		stream.WriteObjectField(changer.Strategy(structField.Name))
