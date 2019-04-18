@@ -4,6 +4,7 @@ package seq
 
 import (
 	"errors"
+	"github.com/icrowley/fake"
 	"github.com/jarcoal/httpmock"
 	"github.com/mralves/tracer"
 	"github.com/mundipagg/tracer-seq-writer/buffer"
@@ -117,11 +118,12 @@ func TestWriter_Send(t *testing.T) {
 		is := assert.New(t)
 		c := &http.Client{}
 		httpmock.ActivateNonDefault(c)
-		httpmock.RegisterResponder("POST", "http://log.io/", func(request *http.Request) (response *http.Response, err error) {
+		url := "http://log.io/" + fake.Password(8, 8, false, false, false)
+		httpmock.RegisterResponder("POST", url, func(request *http.Request) (response *http.Response, err error) {
 			return nil, errors.New("failed")
 		})
 		subject := &Writer{
-			address:    "http://log.io/",
+			address:    url,
 			client:     c,
 			marshaller: json.New(),
 		}
@@ -139,7 +141,8 @@ func TestWriter_Send(t *testing.T) {
 		is := assert.New(t)
 		c := &http.Client{}
 		httpmock.ActivateNonDefault(c)
-		httpmock.RegisterResponder("POST", "http://log.io/", func(request *http.Request) (response *http.Response, err error) {
+		url := "http://log.io/" + fake.Password(8, 8, false, false, false)
+		httpmock.RegisterResponder("POST", url, func(request *http.Request) (response *http.Response, err error) {
 			is.Equal(http.Header{
 				"X-Seq-Apikey": []string{"key"},
 				"Content-Type": []string{"application/json"},
@@ -147,7 +150,7 @@ func TestWriter_Send(t *testing.T) {
 			return nil, errors.New("failed")
 		})
 		subject := &Writer{
-			address:    "http://log.io/",
+			address:    url,
 			client:     c,
 			marshaller: json.New(),
 			key:        "key",
@@ -166,7 +169,8 @@ func TestWriter_Send(t *testing.T) {
 		is := assert.New(t)
 		c := &http.Client{}
 		httpmock.ActivateNonDefault(c)
-		httpmock.RegisterResponder("POST", "http://log.io/", func(request *http.Request) (response *http.Response, err error) {
+		url := "http://log.io/" + fake.Password(8, 8, false, false, false)
+		httpmock.RegisterResponder("POST", url, func(request *http.Request) (response *http.Response, err error) {
 			is.Equal(http.Header{
 				"X-Seq-Apikey": []string{"key"},
 				"Content-Type": []string{"application/json"},
@@ -174,7 +178,7 @@ func TestWriter_Send(t *testing.T) {
 			return httpmock.NewBytesResponse(502, nil), nil
 		})
 		subject := &Writer{
-			address:    "http://log.io/",
+			address:    url,
 			client:     c,
 			marshaller: json.New(),
 			key:        "key",
@@ -193,7 +197,8 @@ func TestWriter_Send(t *testing.T) {
 		is := assert.New(t)
 		c := &http.Client{}
 		httpmock.ActivateNonDefault(c)
-		httpmock.RegisterResponder("POST", "http://log.io/", func(request *http.Request) (response *http.Response, err error) {
+		url := "http://log.io/" + fake.Password(8, 8, false, false, false)
+		httpmock.RegisterResponder("POST", url, func(request *http.Request) (response *http.Response, err error) {
 			is.Equal(http.Header{
 				"X-Seq-Apikey": []string{"key"},
 				"Content-Type": []string{"application/json"},
@@ -201,7 +206,7 @@ func TestWriter_Send(t *testing.T) {
 			return httpmock.NewBytesResponse(201, nil), nil
 		})
 		subject := &Writer{
-			address:    "http://log.io/",
+			address:    url,
 			client:     c,
 			marshaller: json.New(),
 			key:        "key",
