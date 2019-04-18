@@ -112,9 +112,8 @@ type Config struct {
 	Key               string
 	Application       string
 	Buffer            buffer.Config
-	MinimumLevel      int
-	Timeout           int
-	RetryIn           int
+	MinimumLevel      uint
+	Timeout           time.Duration
 	DefaultProperties Entry
 	MessageEnvelop    string
 }
@@ -125,10 +124,10 @@ func New(config Config) *Writer {
 		address: config.Address,
 		key:     config.Key,
 		client: &http.Client{
-			Timeout: time.Duration(config.Timeout) * time.Millisecond,
+			Timeout: config.Timeout,
 			Transport: &http.Transport{
-				TLSHandshakeTimeout: time.Duration(config.Timeout) * time.Millisecond,
-				IdleConnTimeout:     time.Duration(config.Timeout) * time.Millisecond,
+				TLSHandshakeTimeout: config.Timeout,
+				IdleConnTimeout:     config.Timeout,
 			},
 		},
 		messageEnvelop:    config.MessageEnvelop,

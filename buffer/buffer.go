@@ -58,13 +58,26 @@ func (b *buffer) watcher() {
 
 type Config struct {
 	Cap        int
-	OnWait     time.Duration
+	OnWait     int
 	Expiration time.Duration
 	BackOff    time.Duration
 	OnOverflow func([]interface{}) error
 }
 
 func New(c Config) Buffer {
+	if c.Cap == 0 {
+		c.Cap = DefaultCapacity
+	}
+	if c.Expiration == 0 {
+		c.Expiration = DefaultExpiration
+	}
+	if c.BackOff == 0 {
+		c.BackOff = DefaultBackoff
+	}
+	if c.OnWait == 0 {
+		c.OnWait = DefaultOnWait
+	}
+
 	b := &buffer{
 		Locker:     &sync.Mutex{},
 		size:       0,
