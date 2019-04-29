@@ -1,6 +1,7 @@
 package encoder
 
 import (
+	"encoding/json"
 	"github.com/json-iterator/go"
 	"reflect"
 	"strings"
@@ -18,19 +19,29 @@ func (changer *Struct) IsEmpty(ptr unsafe.Pointer) bool {
 
 func (changer *Struct) Encode(ptr unsafe.Pointer, stream *jsoniter.Stream) {
 	v := reflect.NewAt(changer.Type, ptr).Elem()
-	stream.WriteObjectStart()
-	numFields := v.NumField()
-	for i := 0; i < numFields-1; i++ {
-		fv := v.Field(i)
-		ft := changer.Type.Field(i)
-		if changer.writeField(ft, fv, stream) {
-			stream.WriteMore()
+	switch value := v.Interface().(type) {
+	case json.Marshaler:
+		valueJ, _ := value.MarshalJSON()
+		valueM := map[string]interface{}{}
+		_ = json.Unmarshal(valueJ, &valueM)
+		stream.WriteVal(valueM)
+	case error:
+		stream.WriteString(value.Error())
+	default:
+		stream.WriteObjectStart()
+		numFields := v.NumField()
+		for i := 0; i < numFields-1; i++ {
+			fv := v.Field(i)
+			ft := changer.Type.Field(i)
+			if changer.writeField(ft, fv, stream) {
+				stream.WriteMore()
+			}
 		}
+		fv := v.Field(numFields - 1)
+		ft := changer.Type.Field(numFields - 1)
+		changer.writeField(ft, fv, stream)
+		stream.WriteObjectEnd()
 	}
-	fv := v.Field(numFields - 1)
-	ft := changer.Type.Field(numFields - 1)
-	changer.writeField(ft, fv, stream)
-	stream.WriteObjectEnd()
 }
 
 func (changer *Struct) writeField(structField reflect.StructField, value reflect.Value, stream *jsoniter.Stream) bool {
