@@ -11,11 +11,14 @@ import (
 	"github.com/mundipagg/tracer-seq-writer/json"
 	"github.com/stretchr/testify/assert"
 	"net/http"
+	"os"
+	"sync"
 	"testing"
 	"time"
 )
 
 func TestWriter_Write(t *testing.T) {
+	os.Stderr, _ = os.Open(os.DevNull)
 	t.Parallel()
 	t.Run("when the minimum level is higher than the log level received", func(t *testing.T) {
 		t.Parallel()
@@ -98,7 +101,7 @@ func TestWriter_Send(t *testing.T) {
 		t.Parallel()
 		is := assert.New(t)
 		c := &http.Client{}
-		httpmock.ActivateNonDefault(c)
+		activateNonDefault(c)
 		subject := &Writer{
 			address:    "http://log.io/",
 			client:     c,
@@ -117,7 +120,7 @@ func TestWriter_Send(t *testing.T) {
 		t.Parallel()
 		is := assert.New(t)
 		c := &http.Client{}
-		httpmock.ActivateNonDefault(c)
+		activateNonDefault(c)
 		url := "http://log.io/" + fake.Password(8, 8, false, false, false)
 		httpmock.RegisterResponder("POST", url, func(request *http.Request) (response *http.Response, err error) {
 			return nil, errors.New("failed")
@@ -140,7 +143,7 @@ func TestWriter_Send(t *testing.T) {
 		t.Parallel()
 		is := assert.New(t)
 		c := &http.Client{}
-		httpmock.ActivateNonDefault(c)
+		activateNonDefault(c)
 		url := "http://log.io/" + fake.Password(8, 8, false, false, false)
 		httpmock.RegisterResponder("POST", url, func(request *http.Request) (response *http.Response, err error) {
 			is.Equal(http.Header{
@@ -168,7 +171,7 @@ func TestWriter_Send(t *testing.T) {
 		t.Parallel()
 		is := assert.New(t)
 		c := &http.Client{}
-		httpmock.ActivateNonDefault(c)
+		activateNonDefault(c)
 		url := "http://log.io/" + fake.Password(8, 8, false, false, false)
 		httpmock.RegisterResponder("POST", url, func(request *http.Request) (response *http.Response, err error) {
 			is.Equal(http.Header{
@@ -196,7 +199,7 @@ func TestWriter_Send(t *testing.T) {
 		t.Parallel()
 		is := assert.New(t)
 		c := &http.Client{}
-		httpmock.ActivateNonDefault(c)
+		activateNonDefault(c)
 		url := "http://log.io/" + fake.Password(8, 8, false, false, false)
 		httpmock.RegisterResponder("POST", url, func(request *http.Request) (response *http.Response, err error) {
 			is.Equal(http.Header{
@@ -220,4 +223,12 @@ func TestWriter_Send(t *testing.T) {
 		})
 		is.Nil(err, "it should return no error")
 	})
+}
+
+var lock sync.Mutex
+
+func activateNonDefault(c *http.Client) {
+	lock.Lock()
+	defer lock.Unlock()
+	httpmock.ActivateNonDefault(c)
 }
