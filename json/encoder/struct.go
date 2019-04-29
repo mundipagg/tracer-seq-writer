@@ -22,7 +22,7 @@ func (changer *Struct) Encode(ptr unsafe.Pointer, stream *jsoniter.Stream) {
 	switch value := v.Interface().(type) {
 	case json.Marshaler:
 		valueJ, _ := value.MarshalJSON()
-		valueM := map[string]interface{}{}
+		var valueM interface{}
 		_ = json.Unmarshal(valueJ, &valueM)
 		stream.WriteVal(valueM)
 	case error:
