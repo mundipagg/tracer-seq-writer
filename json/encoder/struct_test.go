@@ -78,8 +78,10 @@ func TestStruct_Encode(t *testing.T) {
 		is := assert.New(t)
 		input := struct {
 			A int
+			b int
 		}{
 			A: 15,
+			b: 15,
 		}
 		called := 0
 		subject := &Struct{

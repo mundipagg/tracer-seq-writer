@@ -2,7 +2,6 @@ package encoder
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/json-iterator/go"
 	"reflect"
 	"strings"
@@ -19,10 +18,11 @@ func (changer *Struct) IsEmpty(ptr unsafe.Pointer) bool {
 }
 
 func (changer *Struct) Encode(ptr unsafe.Pointer, stream *jsoniter.Stream) {
+	beforeBuffer := stream.Buffer()
 	defer func() {
 		err := recover()
 		if err != nil {
-			fmt.Printf("%v\n", err)
+			stream.SetBuffer(beforeBuffer)
 		}
 	}()
 	v := reflect.NewAt(changer.Type, ptr).Elem()
@@ -37,23 +37,28 @@ func (changer *Struct) Encode(ptr unsafe.Pointer, stream *jsoniter.Stream) {
 	default:
 		stream.WriteObjectStart()
 		numFields := v.NumField()
-		for i := 0; i < numFields-1; i++ {
-			fv := v.Field(i)
-			ft := changer.Type.Field(i)
-			if changer.writeField(ft, fv, stream) {
-				stream.WriteMore()
+		if numFields > 0 {
+			fv := v.Field(0)
+			ft := changer.Type.Field(0)
+			first := changer.writeField(ft, fv, stream, true)
+			for i := 1; i < numFields; i++ {
+				fv := v.Field(i)
+				ft := changer.Type.Field(i)
+				if changer.writeField(ft, fv, stream, !first) {
+					first = false
+				}
 			}
 		}
-		fv := v.Field(numFields - 1)
-		ft := changer.Type.Field(numFields - 1)
-		changer.writeField(ft, fv, stream)
 		stream.WriteObjectEnd()
 	}
 }
 
-func (changer *Struct) writeField(structField reflect.StructField, value reflect.Value, stream *jsoniter.Stream) bool {
+func (changer *Struct) writeField(structField reflect.StructField, value reflect.Value, stream *jsoniter.Stream, first bool) bool {
 	if !value.CanInterface() {
 		return false
+	}
+	if !first {
+		stream.WriteMore()
 	}
 	tag := strings.TrimSpace(structField.Tag.Get("json"))
 	if len(tag) == 0 {
