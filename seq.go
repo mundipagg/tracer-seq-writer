@@ -75,6 +75,12 @@ func (sw *Writer) Write(entry tracer.Entry) {
 }
 
 func (sw *Writer) send(events []interface{}) error {
+	defer func() {
+		err := recover()
+		if err != nil {
+			fmt.Printf("%v\n", err)
+		}
+	}()
 	log := seqLog{
 		Events: events,
 	}

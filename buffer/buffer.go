@@ -1,6 +1,7 @@
 package buffer
 
 import (
+	"fmt"
 	"sync"
 	"time"
 )
@@ -48,6 +49,12 @@ func (b *buffer) clear() {
 }
 
 func (b *buffer) watcher() {
+	defer func() {
+		err := recover()
+		if err != nil {
+			fmt.Printf("%v\n", err)
+		}
+	}()
 	for {
 		time.Sleep(b.expiration)
 		b.Lock()
@@ -93,6 +100,12 @@ func New(c Config) Buffer {
 }
 
 func (b *buffer) consumer(c Config) {
+	defer func() {
+		err := recover()
+		if err != nil {
+			fmt.Printf("%v\n", err)
+		}
+	}()
 	for events := range b.chunks {
 		err := c.OnOverflow(events)
 		if err != nil {
