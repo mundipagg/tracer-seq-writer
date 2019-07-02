@@ -2,6 +2,7 @@ package encoder
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/json-iterator/go"
 	"reflect"
 	"strings"
@@ -18,6 +19,12 @@ func (changer *Struct) IsEmpty(ptr unsafe.Pointer) bool {
 }
 
 func (changer *Struct) Encode(ptr unsafe.Pointer, stream *jsoniter.Stream) {
+	defer func() {
+		err := recover()
+		if err != nil {
+			fmt.Printf("%v\n", err)
+		}
+	}()
 	v := reflect.NewAt(changer.Type, ptr).Elem()
 	switch value := v.Interface().(type) {
 	case json.Marshaler:
