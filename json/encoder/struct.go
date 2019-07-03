@@ -40,11 +40,11 @@ func (changer *Struct) Encode(ptr unsafe.Pointer, stream *jsoniter.Stream) {
 		if numFields > 0 {
 			fv := v.Field(0)
 			ft := changer.Type.Field(0)
-			first := changer.writeField(ft, fv, stream, true)
+			first := !changer.writeField(ft, fv, stream, true)
 			for i := 1; i < numFields; i++ {
 				fv := v.Field(i)
 				ft := changer.Type.Field(i)
-				if changer.writeField(ft, fv, stream, !first) {
+				if changer.writeField(ft, fv, stream, first) {
 					first = false
 				}
 			}
