@@ -2,7 +2,9 @@ package encoder
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/json-iterator/go"
+	"os"
 	"reflect"
 	"strings"
 	"unsafe"
@@ -22,6 +24,7 @@ func (changer *Struct) Encode(ptr unsafe.Pointer, stream *jsoniter.Stream) {
 	defer func() {
 		err := recover()
 		if err != nil {
+			fmt.Fprintf(os.Stderr, "a error occurred while serialization of '%v', error: '%v'", changer.Type.Name(), err)
 			stream.SetBuffer(beforeBuffer)
 		}
 	}()

@@ -86,7 +86,7 @@ func (sw *Writer) send(events []interface{}) error {
 	}
 	body, err := sw.marshaller.Marshal(log)
 	if err != nil {
-		stderr("COULD NOT SEND LOG TO SEQ BECAUSE %v", err)
+		stderr("COULD NOT SEND LOG TO SEQ BECAUSE %v, log: %v", err, string(body))
 		return err
 	}
 
@@ -98,12 +98,12 @@ func (sw *Writer) send(events []interface{}) error {
 	var response *http.Response
 	response, err = sw.client.Do(request)
 	if err != nil {
-		stderr("COULD NOT SEND LOG TO SEQ BECAUSE %v", err)
+		stderr("COULD NOT SEND LOG TO SEQ BECAUSE %v, log: %v", err, string(body))
 		return err
 	}
 	response.Body.Close()
 	if response.StatusCode != 201 {
-		stderr("COULD NOT SEND LOG TO SEQ BECAUSE %v", response.StatusCode)
+		stderr("COULD NOT SEND LOG TO SEQ BECAUSE %v, log: %v", response.Status, string(body))
 		return errors.New(fmt.Sprintf("request returned %v", response.StatusCode))
 	}
 	return nil
