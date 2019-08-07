@@ -41,26 +41,22 @@ func (changer *Struct) Encode(ptr unsafe.Pointer, stream *jsoniter.Stream) {
 		stream.WriteObjectStart()
 		numFields := v.NumField()
 		if numFields > 0 {
-			fv := v.Field(0)
-			ft := changer.Type.Field(0)
-			first := !changer.writeField(ft, fv, stream, true)
-			for i := 1; i < numFields; i++ {
+			lastWasWrote := false
+			for i := 0; i < numFields; i++ {
 				fv := v.Field(i)
 				ft := changer.Type.Field(i)
-				if changer.writeField(ft, fv, stream, first) {
-					first = false
-				}
+				lastWasWrote = changer.writeField(ft, fv, stream, lastWasWrote)
 			}
 		}
 		stream.WriteObjectEnd()
 	}
 }
 
-func (changer *Struct) writeField(structField reflect.StructField, value reflect.Value, stream *jsoniter.Stream, first bool) bool {
+func (changer *Struct) writeField(structField reflect.StructField, value reflect.Value, stream *jsoniter.Stream, needsComma bool) bool {
 	if !value.CanInterface() {
 		return false
 	}
-	if !first {
+	if needsComma {
 		stream.WriteMore()
 	}
 	tag := strings.TrimSpace(structField.Tag.Get("json"))
@@ -71,16 +67,23 @@ func (changer *Struct) writeField(structField reflect.StructField, value reflect
 		pieces := strings.Split(tag, ",")
 		if len(pieces) > 1 {
 			if pieces[1] == "omitempty" {
+				isZero := func() (isZero bool) {
+					defer func() {
+						if recover() != nil {
+							isZero = false
+						}
+					}()
+					return reflect.DeepEqual(value.Interface(), reflect.Zero(value.Type()).Interface())
+				}()
 				isNil := func() (isNil bool) {
 					defer func() {
 						if recover() != nil {
 							isNil = false
 						}
 					}()
-					isNil = value.IsNil()
-					return isNil
+					return value.IsNil()
 				}()
-				if isNil {
+				if isNil || isZero {
 					return false
 				}
 			}
