@@ -22,7 +22,7 @@ type buffer struct {
 	cap        int
 	size       int
 	expiration time.Duration
-	chunks     chan []interface{}
+	chunks     chan entry
 	items      []interface{}
 	backoff    time.Duration
 }
@@ -43,7 +43,10 @@ func (b *buffer) clear() {
 		b.size = 0
 		b.items = make([]interface{}, b.cap)
 		go func() {
-			b.chunks <- events
+			b.chunks <- entry{
+				items: events,
+				retries: cap(b.chunks),
+			}
 		}()
 	}
 }
@@ -71,6 +74,11 @@ type Config struct {
 	OnOverflow func([]interface{}) error
 }
 
+type entry struct {
+	items []interface{}
+	retries int
+}
+
 func New(c Config) Buffer {
 	if c.Cap == 0 {
 		c.Cap = DefaultCapacity
@@ -90,7 +98,7 @@ func New(c Config) Buffer {
 		size:       0,
 		cap:        c.Cap,
 		expiration: c.Expiration,
-		chunks:     make(chan []interface{}, c.OnWait),
+		chunks:     make(chan entry, c.OnWait),
 		items:      make([]interface{}, c.Cap),
 		backoff:    c.BackOff,
 	}
@@ -107,11 +115,14 @@ func (b *buffer) consumer(c Config) {
 		}
 	}()
 	for events := range b.chunks {
-		err := c.OnOverflow(events)
+		err := c.OnOverflow(events.items)
 		if err != nil {
-			go func(events []interface{}) {
-				time.Sleep(b.backoff)
-				b.chunks <- events
+			go func(events entry) {
+					events.retries--
+					if events.retries >= 0 {
+						time.Sleep(b.backoff)
+						b.chunks <- events
+					}
 			}(events)
 		}
 	}
