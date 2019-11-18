@@ -41,11 +41,19 @@ func (changer *Struct) Encode(ptr unsafe.Pointer, stream *jsoniter.Stream) {
 		stream.WriteObjectStart()
 		numFields := v.NumField()
 		if numFields > 0 {
-			lastWasWrote := false
-			for i := 0; i < numFields; i++ {
+			var i int
+			for i = 0; i < numFields; i++ {
 				fv := v.Field(i)
 				ft := changer.Type.Field(i)
-				lastWasWrote = changer.writeField(ft, fv, stream, lastWasWrote)
+				if changer.writeField(ft, fv, stream, false) {
+					break
+				}
+			}
+			i++
+			for ; i < numFields; i++ {
+				fv := v.Field(i)
+				ft := changer.Type.Field(i)
+				changer.writeField(ft, fv, stream, true)
 			}
 		}
 		stream.WriteObjectEnd()
@@ -56,15 +64,19 @@ func (changer *Struct) writeField(structField reflect.StructField, value reflect
 	if !value.CanInterface() {
 		return false
 	}
-	if needsComma {
-		stream.WriteMore()
-	}
+
 	tag := strings.TrimSpace(structField.Tag.Get("json"))
 	if len(tag) == 0 {
+		if needsComma {
+			stream.WriteMore()
+		}
 		stream.WriteObjectField(changer.Strategy(structField.Name))
 		stream.WriteVal(value.Interface())
+
 	} else {
+
 		pieces := strings.Split(tag, ",")
+
 		if len(pieces) > 1 {
 			if pieces[1] == "omitempty" {
 				isZero := func() (isZero bool) {
@@ -88,8 +100,17 @@ func (changer *Struct) writeField(structField reflect.StructField, value reflect
 				}
 			}
 		}
+
+		if pieces[0] == "-" {
+			return false
+		}
+
+		if needsComma {
+			stream.WriteMore()
+		}
 		stream.WriteObjectField(changer.Strategy(pieces[0]))
 		stream.WriteVal(value.Interface())
+
 	}
 	return true
 }
