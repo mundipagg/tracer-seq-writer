@@ -20,7 +20,7 @@ func TestBuffer_Write(t *testing.T) {
 			size:   0,
 			cap:    10,
 			items:  make([]interface{}, 10),
-			chunks: make(chan []interface{}, 10),
+			chunks: make(chan entry, 10),
 		}
 		subject.Write("something")
 		is.Equal(1, subject.size, "it should increment the size of the buffer in one unit")
@@ -34,7 +34,7 @@ func TestBuffer_Write(t *testing.T) {
 			size:   0,
 			cap:    1,
 			items:  make([]interface{}, 1),
-			chunks: make(chan []interface{}, 10),
+			chunks: make(chan entry, 10),
 		}
 		subject.Write("something")
 		is.Equal(0, subject.size, "it should remain zero")
@@ -42,7 +42,7 @@ func TestBuffer_Write(t *testing.T) {
 		timeout := time.NewTimer(10 * time.Millisecond)
 		select {
 		case actual := <-subject.chunks:
-			is.Equal([]interface{}{"something"}, actual, "it should read the expected slice")
+			is.Equal(entry{items:[]interface{}{"something"}, retries: 10} , actual, "it should read the expected slice")
 		case <-timeout.C:
 			is.Fail("nothing was published")
 		}
