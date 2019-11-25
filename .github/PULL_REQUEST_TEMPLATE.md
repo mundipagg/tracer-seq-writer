@@ -11,6 +11,6 @@ Add additional informations like screenshots, issue link, etc
 
 #### :speech_balloon: Important guidelines
 
-* Add pull request labels.
+* Add pull request labels. 
 * Check base branch.
 * Make sure [your local branch is up to date](https://help.github.com/articles/syncing-a-fork/) before commiting your changes!
