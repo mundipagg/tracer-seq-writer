@@ -75,6 +75,12 @@ func (sw *Writer) Write(entry tracer.Entry) {
 }
 
 func (sw *Writer) send(events []interface{}) error {
+	defer func() {
+		err := recover()
+		if err != nil {
+			fmt.Printf("%v\n", err)
+		}
+	}()
 	log := seqLog{
 		Events: events,
 	}
@@ -97,7 +103,7 @@ func (sw *Writer) send(events []interface{}) error {
 	}
 	response.Body.Close()
 	if response.StatusCode != 201 {
-		stderr("COULD NOT SEND LOG TO SEQ BECAUSE %v", response.StatusCode)
+		stderr("COULD NOT SEND LOG TO SEQ BECAUSE %v", response.Status)
 		return errors.New(fmt.Sprintf("request returned %v", response.StatusCode))
 	}
 	return nil
