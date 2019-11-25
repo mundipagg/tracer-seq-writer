@@ -12,6 +12,21 @@ Using [dep](github.com/golang/dep) (recommended):
 dep ensure --add github.com/mundipagg/tracer-seq-writer@<version>
 ```
 
+## Configuration
+
+|Field|Type|Mandatory?|Default|Description|
+|---|---|---|:---:|---|
+|Address|string|Y||Seq **full** endpoint (i.e. http://seq.io/api/events/eaw)|
+|Key|string|N|""|Seq [API Key](https://docs.datalust.co/docs/api-keys)|
+|Application|string|Y||Application name|
+|Minimum Level|uint8|N|DEBUG|Minimum Level to log following the [syslog](https://en.wikipedia.org/wiki/Syslog#Severity_level) standard|
+|Timeout|time.Duration|N|0 (infinite)|Timeout of the HTTP client|
+|MessageEnvelop|string|N|"%v"|A envelop that *wraps* the original message|
+|DefaultProperties|seq.Entry|N|{}|A generic object to append to *every* log entry, but can be overwritten by the original log entry|
+|Buffer.Cap|int|N|100| Maximum capacity of the log buffer, when the buffer is full all logs are sent at once|
+|Buffer.OnWait|int|N|100| Maximum size of the queue to send to Seq|
+|Buffer.BackOff|time.Duration|N|60 seconds| Delay between retries to Seq|
+
 ## How to use
 
 Below follows a simple example of how to use this lib:
