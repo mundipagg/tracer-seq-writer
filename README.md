@@ -1,5 +1,5 @@
 # SEQ Writer
-This library is a writer(sink) SEQ to use with [Tracer](https://github.com/mralves/tracer)
+This library is a writer(sink) [SEQ](https://datalust.co/) to use with [Tracer](https://github.com/mralves/tracer)
 
 ## How to install
 Using go get (not recommended):
