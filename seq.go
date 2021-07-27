@@ -106,7 +106,7 @@ func (sw *Writer) send(events []interface{}) error {
 		stderr("COULD NOT SEND LOG TO SEQ BECAUSE %v", err)
 		return err
 	}
-	response.Body.Close()
+	defer response.Body.Close()
 	if response.StatusCode != 201 {
 		bodyBytes, err := io.ReadAll(response.Body)
 		if err != nil {
