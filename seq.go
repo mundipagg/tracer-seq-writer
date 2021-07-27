@@ -91,7 +91,11 @@ func (sw *Writer) send(events []interface{}) error {
 		return err
 	}
 
-	request, _ := http.NewRequest(http.MethodPost, sw.address, bytes.NewBuffer(body))
+	request, err := http.NewRequest(http.MethodPost, sw.address, bytes.NewBuffer(body))
+	if err != nil {
+		stderr("ERROR CREATE SEQ REQUEST %s", err)
+	}
+
 	if len(sw.key) > 0 {
 		request.Header.Set("X-Seq-ApiKey", sw.key)
 	}
@@ -104,8 +108,12 @@ func (sw *Writer) send(events []interface{}) error {
 	}
 	response.Body.Close()
 	if response.StatusCode != 201 {
-		bodyBytes, _ := io.ReadAll(response.Body)
-		stderr("COULD NOT SEND LOG TO SEQ BECAUSE %v; body: %s", response.Status, string(bodyBytes))
+		bodyBytes, err := io.ReadAll(response.Body)
+		if err != nil {
+			stderr("ERROR PARSER SEQ RESPONSE %s", err)
+		}
+
+		stderr("COULD NOT SEND LOG TO SEQ BECAUSE %v; request: %s; response: %s", response.Status, string(body), string(bodyBytes))
 		return errors.New(fmt.Sprintf("request returned %v", response.StatusCode))
 	}
 	return nil
