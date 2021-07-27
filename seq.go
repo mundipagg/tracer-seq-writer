@@ -9,6 +9,7 @@ import (
 	"github.com/mundipagg/tracer-seq-writer/buffer"
 	"github.com/mundipagg/tracer-seq-writer/json"
 	"github.com/mundipagg/tracer-seq-writer/strings"
+	"io"
 	"net/http"
 	"os"
 	"regexp"
@@ -103,7 +104,8 @@ func (sw *Writer) send(events []interface{}) error {
 	}
 	response.Body.Close()
 	if response.StatusCode != 201 {
-		stderr("COULD NOT SEND LOG TO SEQ BECAUSE %v", response.Status)
+		bodyBytes, _ := io.ReadAll(response.Body)
+		stderr("COULD NOT SEND LOG TO SEQ BECAUSE %v; body: %s", response.Status, string(bodyBytes))
 		return errors.New(fmt.Sprintf("request returned %v", response.StatusCode))
 	}
 	return nil
