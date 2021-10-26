@@ -4,10 +4,11 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"regexp"
+	str "strings"
 	"sync"
 	"time"
 
@@ -109,12 +110,13 @@ func (sw *Writer) send(events []interface{}) error {
 	}
 	defer response.Body.Close()
 	if response.StatusCode != 201 {
-		bodyBytes, err := ioutil.ReadAll(response.Body)
+		buffer := new(str.Builder)
+		_, err := io.Copy(buffer, response.Body)
 		if err != nil {
 			stderr("ERROR PARSER SEQ RESPONSE %s", err)
 		}
 
-		stderr("COULD NOT SEND LOG TO SEQ BECAUSE %v; request: %s; response: %s", response.Status, string(body), string(bodyBytes))
+		stderr("COULD NOT SEND LOG TO SEQ BECAUSE %v; request: %s; response: %s", response.Status, string(body), buffer.String())
 		return errors.New(fmt.Sprintf("request returned %v", response.StatusCode))
 	}
 	return nil
