@@ -4,17 +4,18 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/json-iterator/go"
-	"github.com/mralves/tracer"
-	"github.com/mundipagg/tracer-seq-writer/buffer"
-	"github.com/mundipagg/tracer-seq-writer/json"
-	"github.com/mundipagg/tracer-seq-writer/strings"
-	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"regexp"
 	"sync"
 	"time"
+
+	jsoniter "github.com/json-iterator/go"
+	"github.com/mralves/tracer"
+	"github.com/mundipagg/tracer-seq-writer/buffer"
+	"github.com/mundipagg/tracer-seq-writer/json"
+	"github.com/mundipagg/tracer-seq-writer/strings"
 )
 
 type Writer struct {
@@ -108,7 +109,7 @@ func (sw *Writer) send(events []interface{}) error {
 	}
 	defer response.Body.Close()
 	if response.StatusCode != 201 {
-		bodyBytes, err := io.ReadAll(response.Body)
+		bodyBytes, err := ioutil.ReadAll(response.Body)
 		if err != nil {
 			stderr("ERROR PARSER SEQ RESPONSE %s", err)
 		}
