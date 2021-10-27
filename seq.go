@@ -4,17 +4,19 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/json-iterator/go"
-	"github.com/mralves/tracer"
-	"github.com/mundipagg/tracer-seq-writer/buffer"
-	"github.com/mundipagg/tracer-seq-writer/json"
-	"github.com/mundipagg/tracer-seq-writer/strings"
 	"io"
 	"net/http"
 	"os"
 	"regexp"
+	str "strings"
 	"sync"
 	"time"
+
+	jsoniter "github.com/json-iterator/go"
+	"github.com/mralves/tracer"
+	"github.com/mundipagg/tracer-seq-writer/buffer"
+	"github.com/mundipagg/tracer-seq-writer/json"
+	"github.com/mundipagg/tracer-seq-writer/strings"
 )
 
 type Writer struct {
@@ -108,12 +110,13 @@ func (sw *Writer) send(events []interface{}) error {
 	}
 	defer response.Body.Close()
 	if response.StatusCode != 201 {
-		bodyBytes, err := io.ReadAll(response.Body)
+		buffer := new(str.Builder)
+		_, err := io.Copy(buffer, response.Body)
 		if err != nil {
 			stderr("ERROR PARSER SEQ RESPONSE %s", err)
 		}
 
-		stderr("COULD NOT SEND LOG TO SEQ BECAUSE %v; request: %s; response: %s", response.Status, string(body), string(bodyBytes))
+		stderr("COULD NOT SEND LOG TO SEQ BECAUSE %v; request: %s; response: %s", response.Status, string(body), buffer.String())
 		return errors.New(fmt.Sprintf("request returned %v", response.StatusCode))
 	}
 	return nil
